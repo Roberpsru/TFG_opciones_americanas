@@ -59,6 +59,12 @@ st.markdown(
     div[data-baseweb="tab-list"] button[data-baseweb="tab"]:nth-child(6),
     div[data-baseweb="tab-list"] button[data-baseweb="tab"]:nth-child(6) p { color: #e67e22 !important; }
     div[data-baseweb="tab-highlight"] { background-color: #2c3e50 !important; height: 3px !important; }
+ 
+    /* Ocultar elementos de Streamlit */
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    [data-testid="manage-app-button"] {display: none;}
+    .stDeployButton {display: none;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -169,7 +175,7 @@ if calcular:
     else:
         estado = "OTM"
  
-    # Calcular griegas (se usan en la pestaña Griegas y en Conclusiones)
+    # Calcular griegas
     with st.spinner("Calculando griegas..."):
         g_bin = calcular_griegos(precio_binomial, S0, K, T, r, sigma, tipo, N=N_bin)
  
@@ -485,8 +491,8 @@ if calcular:
         n_tray = np.arange(1, len(flujos_desc) + 1)
         var_acum = np.cumsum((flujos_desc - media_acum)**2) / n_tray
         std_acum = np.sqrt(var_acum / n_tray)
-        paso = max(1, len(media_acum) // 500)
-        idx_plot = np.arange(0, len(media_acum), paso)
+        paso_plot = max(1, len(media_acum) // 500)
+        idx_plot = np.arange(0, len(media_acum), paso_plot)
         fig_conv, ax_conv = plt.subplots(figsize=(10, 4))
         ax_conv.plot(n_tray[idx_plot], media_acum[idx_plot], color='indianred', linewidth=1.2, label='Estimación MC')
         ax_conv.fill_between(n_tray[idx_plot], (media_acum - 1.96*std_acum)[idx_plot],
@@ -548,7 +554,6 @@ if calcular:
     with tab6:
         st.subheader("Conclusiones del análisis")
  
-        # Datos auxiliares para las conclusiones
         precios_dict = {'Binomial': p_bin, 'Dif. finitas': p_fd, 'Monte Carlo': p_mc}
         tiempos_dict = {'Binomial': t_bin, 'Dif. finitas': t_fd, 'Monte Carlo': t_mc}
  
@@ -566,16 +571,14 @@ if calcular:
         prima_ea = p_bin - p_eu
         prima_pct = (prima_ea / p_eu * 100) if p_eu > 0 else 0
  
-        # --- 1. Comparación de precios ---
+        # 1. Precios
         st.markdown("#### 1. Comparación de precios")
- 
         st.markdown(
             f"Los tres métodos producen precios dentro de un rango estrecho: "
             f"**{p_min:.4f}** a **{p_max:.4f}** (diferencia máxima de {rango:.4f}). "
             f"El método que más se desvía del binomial es **{mas_alejado}**, "
             f"con una diferencia de {difs_vs_bin[mas_alejado]:.4f}."
         )
- 
         if tipo == 'put':
             st.markdown(
                 f"La prima de ejercicio anticipado es **{prima_ea:.4f}**, lo que representa "
@@ -594,16 +597,13 @@ if calcular:
  
         st.divider()
  
-        # --- 2. Comparación de velocidad ---
+        # 2. Velocidad
         st.markdown("#### 2. Comparación de velocidad")
- 
         st.markdown(
             f"El método más rápido es **{mas_rapido}** ({tiempos_dict[mas_rapido]:.1f} ms) "
             f"y el más lento es **{mas_lento}** ({tiempos_dict[mas_lento]:.1f} ms). "
             f"La diferencia es de **{ratio_velocidad:.0f}x**."
         )
- 
-        # Relación calidad/tiempo
         if difs_vs_bin[mas_alejado] < 0.05 and tiempos_dict[mas_lento] > 500:
             st.markdown(
                 f"Aunque {mas_lento} tarda considerablemente más, la mejora en precisión "
@@ -618,10 +618,8 @@ if calcular:
  
         st.divider()
  
-        # --- 3. Comparación de griegas ---
+        # 3. Griegas
         st.markdown("#### 3. Comparación de las griegas")
- 
-        # Identificar griegas con mayor y menor dispersión
         nombres_griegas = ['Delta', 'Gamma', 'Theta', 'Vega', 'Rho']
         dispersiones = {}
         for g in nombres_griegas:
@@ -630,8 +628,6 @@ if calcular:
  
         griega_estable = min(dispersiones, key=dispersiones.get)
         griega_inestable = max(dispersiones, key=dispersiones.get)
- 
-        # Desviación de MC respecto al binomial
         desv_mc = {g: abs(g_mc[g] - g_bin[g]) for g in nombres_griegas}
         griega_mc_peor = max(desv_mc, key=desv_mc.get)
  
@@ -641,7 +637,6 @@ if calcular:
             f"La de mayor dispersión es **{griega_inestable}** "
             f"(dispersión de {dispersiones[griega_inestable]:.4f})."
         )
- 
         st.markdown(
             f"Monte Carlo presenta su mayor desviación en **{griega_mc_peor}** "
             f"(diferencia de {desv_mc[griega_mc_peor]:.4f} respecto al binomial). "
@@ -652,9 +647,8 @@ if calcular:
  
         st.divider()
  
-        # --- 4. Recomendación según el escenario ---
+        # 4. Recomendación
         st.markdown("#### 4. Recomendación para este escenario")
- 
         if tipo == 'put':
             st.markdown(
                 "Al tratarse de una **put americana**, el ejercicio anticipado es relevante "
@@ -671,8 +665,6 @@ if calcular:
                 "para obtener el precio. Los métodos numéricos confirman este resultado, "
                 "pero no aportan información adicional relevante en este caso."
             )
- 
-        # Comentario sobre volatilidad
         if sigma > 0.5:
             st.markdown(
                 f"Con una volatilidad de {sigma:.0%}, que es alta, la estimación de Monte Carlo "
@@ -689,9 +681,8 @@ if calcular:
  
         st.divider()
  
-        # --- 5. Limitaciones ---
+        # 5. Limitaciones
         st.markdown("#### 5. Limitaciones del análisis")
- 
         st.markdown(
             """
             - Se asume volatilidad constante y tipo de interés fijo, condiciones que no se dan en mercados reales.

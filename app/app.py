@@ -60,11 +60,22 @@ st.markdown(
     div[data-baseweb="tab-list"] button[data-baseweb="tab"]:nth-child(6) p { color: #e67e22 !important; }
     div[data-baseweb="tab-highlight"] { background-color: #2c3e50 !important; height: 3px !important; }
  
-    /* Ocultar elementos de Streamlit */
-    footer {visibility: hidden;}
-    #MainMenu {visibility: hidden;}
-    [data-testid="manage-app-button"] {display: none;}
-    .stDeployButton {display: none;}
+    /* Ocultar todos los elementos de Streamlit */
+    footer {visibility: hidden !important;}
+    #MainMenu {visibility: hidden !important; display: none !important;}
+    [data-testid="manage-app-button"] {display: none !important;}
+    .stDeployButton {display: none !important;}
+    [data-testid="stToolbar"] {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    .viewerBadge_container__r5tak {display: none !important;}
+    .stApp [data-testid="stHeader"] {display: none !important;}
+    iframe[title="streamlit_badgeST"] {display: none !important;}
+    header[data-testid="stHeader"] {display: none !important;}
+    div[data-testid="stDecoration"] {display: none !important;}
+    .reportview-container .main footer {visibility: hidden !important;}
+    #stStreamlitBadge {display: none !important;}
+    ._profileContainer_gzau3_53 {display: none !important;}
+    ._container_gzau3_1 {display: none !important;}
     </style>
     """,
     unsafe_allow_html=True,
